@@ -5,4 +5,5 @@ package eu.mobilebear.carcompany.mvp.model;
  * Created on 16.01.2017.
  */
 public class BuiltDate {
+    private  String siema;
 }

@@ -40,9 +40,6 @@ public class MainActivity extends AppCompatActivity {
 	@BindView(R.id.toolbar)
 	Toolbar toolbar;
 
-	@BindView(R.id.fab)
-	FloatingActionButton fab;
-
 	private Unbinder unbinder;
 
 	@Override
@@ -52,8 +49,6 @@ public class MainActivity extends AppCompatActivity {
 		setContentView(R.layout.activity_main);
 		unbinder = ButterKnife.bind(this);
 		setSupportActionBar(toolbar);
-		fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-				.setAction("Action", null).show());
 
 		Observable<Manufacturer> manufacturer = restClient.getCarService()
 				.getManufacturers(restClient.getToken(), 0, 10);
