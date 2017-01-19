@@ -16,25 +16,27 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import eu.mobilebear.carcompany.MainActivity;
 import eu.mobilebear.carcompany.R;
-import eu.mobilebear.carcompany.mvp.model.Manufacturer;
+import eu.mobilebear.carcompany.mvp.model.BuiltDate;
+import eu.mobilebear.carcompany.mvp.model.MainType;
 import java.util.List;
 
 /**
- * @author bartoszbanczerowski@gmail.com Created on 16.01.2017.
+ * @author bartoszbanczerowski@gmail.com Created on 19.01.2017.
  */
-public class ManufacturerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+public class BuiltDateAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
   private static final int EVEN_ROW_TYPE = 0;
   private static final int ODD_ROW_TYPE = 1;
   private static final int PROGRESS_BAR_TYPE = 2;
 
-  private List<Manufacturer> manufacturers;
+  private List<BuiltDate> mainTypes;
   private MainActivity activity;
 
-  public ManufacturerAdapter(@NonNull final Activity activity,
-      @Nullable List<Manufacturer> manufacturers) {
+  public BuiltDateAdapter(@NonNull final Activity activity,
+      @Nullable List<BuiltDate> mainTypes) {
     this.activity = (MainActivity) activity;
-    this.manufacturers = manufacturers;
+    this.mainTypes = mainTypes;
   }
 
   @Override
@@ -77,26 +79,28 @@ public class ManufacturerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
   @Override
   public int getItemCount() {
-    return manufacturers.size();
+    return mainTypes.size();
   }
 
   private void configureProgressBarViewHolder() {
 
   }
 
-  private void configureOddViewHolder(OddViewHolder oddViewHolder, final int position) {
-    oddViewHolder.manufacturerName.setText(manufacturers.get(position).getName());
+  private void configureOddViewHolder(OddViewHolder oddViewHolder,
+      final int position) {
+    oddViewHolder.manufacturerName.setText(mainTypes.get(position).getName());
     oddViewHolder.backgroundLinearLayout.setBackgroundColor(oddViewHolder.color);
     oddViewHolder.itemView.setOnClickListener(view -> {
-      activity.replaceFragment(MAIN_TYPES_FRAGMENT, manufacturers.get(position).getId());
+//      activity.replaceFragment(MAIN_TYPES_FRAGMENT, mainTypes.get(position).getId());
     });
   }
 
-  private void configureEvenViewHolder(EvenViewHolder evenViewHolder, final int position) {
-    evenViewHolder.manufacturerName.setText(manufacturers.get(position).getName());
+  private void configureEvenViewHolder(EvenViewHolder evenViewHolder,
+      final int position) {
+    evenViewHolder.manufacturerName.setText(mainTypes.get(position).getName());
     evenViewHolder.backgroundLinearLayout.setBackgroundColor(evenViewHolder.color);
     evenViewHolder.itemView.setOnClickListener(view -> {
-      activity.replaceFragment(MAIN_TYPES_FRAGMENT, manufacturers.get(position).getId());
+//      activity.replaceFragment(MAIN_TYPES_FRAGMENT, mainTypes.get(position).getId(), null);
     });
   }
 
@@ -133,5 +137,4 @@ public class ManufacturerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
       ButterKnife.bind(this, itemView);
     }
   }
-
 }

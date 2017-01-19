@@ -1,20 +1,39 @@
 package eu.mobilebear.carcompany.mvp.presenters;
 
 /**
- * @author bartoszbanczerowski@gmail.com
- * Created on 16.01.2017.
+ * @author bartoszbanczerowski@gmail.com Created on 16.01.2017.
  */
-public interface Presenter<T> {
+interface Presenter<T> {
 
-	void onCreate();
+  /**
+   * Method that control the lifecycle of the view. It should be called in the view's (Activity or
+   * Fragment) onResume() method.
+   */
+  void onStart();
 
-	void onStart();
+  /**
+   * Method that control the lifecycle of the view. It should be called in the view's (Activity or
+   * Fragment) onResume() method.
+   */
+  void onStop();
 
-	void onStop();
+  /**
+   * Method that control the lifecycle of the view. It should be called in the view's (Activity or
+   * Fragment) onResume() method.
+   */
+  void onResume();
 
-	void onPause();
+  /**
+   * Method that control the lifecycle of the view. It should be called in the view's (Activity or
+   * Fragment) onPause() method.
+   */
+  void onPause();
 
-	void attachView(T view);
+  /**
+   * Method that attachView to presenter. It should be called in the view's (Activity or Fragment)
+   * onCreate() method.
+   */
+  void attachView(T view);
 
 
 }

@@ -1,95 +1,91 @@
 package eu.mobilebear.carcompany;
 
+import static eu.mobilebear.carcompany.utils.FragmentUtils.*;
+
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.TextView;
-
-import java.util.Map;
-
-import javax.inject.Inject;
-
+import android.widget.FrameLayout;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import eu.mobilebear.carcompany.mvp.model.Manufacturer;
+import eu.mobilebear.carcompany.fragments.MainTypeFragment;
+import eu.mobilebear.carcompany.fragments.ManufacturersFragment;
 import eu.mobilebear.carcompany.injection.Injector;
-import eu.mobilebear.carcompany.rest.RestClient;
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
-import timber.log.Timber;
+import eu.mobilebear.carcompany.injection.components.CarComponent;
+import eu.mobilebear.carcompany.injection.components.DaggerCarComponent;
+import eu.mobilebear.carcompany.injection.modules.ActivityModule;
+import eu.mobilebear.carcompany.utils.FragmentUtils.TagFragment;
+import javax.inject.Inject;
 
 public class MainActivity extends AppCompatActivity {
 
-	@Inject
-	RestClient restClient;
+  @Inject
+  FragmentManager fragmentManager;
 
-	@Inject
-	FragmentManager fragmentManager;
+  @BindView(R.id.container)
+  FrameLayout container;
 
-	@BindView(R.id.manufacturersTextView)
-	TextView textView;
+  @BindView(R.id.toolbar)
+  Toolbar toolbar;
 
-	@BindView(R.id.toolbar)
-	Toolbar toolbar;
+  private Unbinder unbinder;
+  private CarComponent carComponent;
 
-	private Unbinder unbinder;
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+    initializeCarComponent(this);
+    carComponent.inject(this);
+    unbinder = ButterKnife.bind(this);
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		Injector.inject(this);
-		setContentView(R.layout.activity_main);
-		unbinder = ButterKnife.bind(this);
-		setSupportActionBar(toolbar);
+    setSupportActionBar(toolbar);
 
-		Observable<Manufacturer> manufacturer = restClient.getCarService()
-				.getManufacturers(restClient.getToken(), 0, 10);
+    fragmentManager
+        .beginTransaction().add(R.id.container, ManufacturersFragment.newInstance(),
+        BUILT_DATES_FRAGMENT)
+        .commit();
 
+  }
 
-		Subscription subscription = manufacturer
-				.subscribeOn(Schedulers.io())
-				.observeOn(AndroidSchedulers.mainThread())
-				.doOnNext(manufacturer1 -> {
-					textView.setText(manufacturer1.toString());
-					getManufacturers(manufacturer1);
-				})
-				.doOnError(throwable -> Timber.e("Response: " + throwable.getMessage()))
-				.doOnCompleted(() -> Timber.d("siema"))
-				.subscribe();
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    unbinder.unbind();
+  }
 
-	}
+  private void initializeCarComponent(Activity activity) {
+    carComponent = DaggerCarComponent.builder()
+        .applicationComponent(Injector.getApplicationComponent())
+        .activityModule(new ActivityModule(activity))
+        .build();
+  }
 
-	private Map<Integer, String> manufacturers;
+  public CarComponent getCarComponent() {
+    return carComponent;
+  }
 
-	private void getManufacturers(Manufacturer manufacturer) {
-		manufacturers = manufacturer.getManufacturers();
-		for(String value : manufacturers.values()){
-			Timber.d("Manufacturer: " + value);
-		}
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.menu_main, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-
-		int id = item.getItemId();
-		//noinspection SimplifiableIfStatement
-		if (id == R.id.action_settings) {
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
+  public void replaceFragment(@TagFragment String tag, String manufacturerId) {
+    Fragment fragment = fragmentManager.findFragmentByTag(tag);
+    switch (tag) {
+      case MANUFACTURER_FRAGMENT:
+        fragment = ManufacturersFragment.newInstance();
+        break;
+      case MAIN_TYPES_FRAGMENT:
+        fragment = MainTypeFragment.newInstance(manufacturerId);
+        break;
+      case BUILT_DATES_FRAGMENT:
+        break;
+    }
+    if (fragment != null) {
+      fragmentManager.beginTransaction()
+          .replace(R.id.container, fragment)
+          .addToBackStack(tag)
+          .commit();
+    }
+  }
 }
