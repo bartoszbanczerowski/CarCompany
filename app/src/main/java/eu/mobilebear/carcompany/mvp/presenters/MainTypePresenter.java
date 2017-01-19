@@ -24,10 +24,6 @@ import timber.log.Timber;
  */
 public class MainTypePresenter implements Presenter<MainTypeView> {
 
-
-  @ActivityContext
-  private Context context;
-
   private RestClient restClient;
   private Subscription mainTypeSubscription;
   private MainTypeView view;
@@ -39,9 +35,8 @@ public class MainTypePresenter implements Presenter<MainTypeView> {
   private int pageSize;
   private int totalPageCount;
 
-  public MainTypePresenter(@ActivityContext Context context, RestClient restClient) {
+  public MainTypePresenter(RestClient restClient) {
     this.restClient = restClient;
-    this.context = context;
   }
 
 
@@ -80,10 +75,10 @@ public class MainTypePresenter implements Presenter<MainTypeView> {
   }
 
   private Subscription getMainTypes() {
-    Observable<Response<APIResponse>> manufacturer = restClient.getCarService()
+    Observable<Response<APIResponse>> response = restClient.getCarService()
         .getMainTypes(restClient.getToken(), 0, 10, manufacturerId);
 
-    return manufacturer
+    return response
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(this::getManufacturers)

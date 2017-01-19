@@ -26,8 +26,6 @@ public class ManufacturerPresenter implements Presenter<ManufacturerView> {
 
   public static final int PAGE_SIZE = 10;
   public static final int PAGE = 0;
-  @ActivityContext
-  private Context context;
 
   private RestClient restClient;
   private Subscription manufacturersSubscription;
@@ -38,9 +36,8 @@ public class ManufacturerPresenter implements Presenter<ManufacturerView> {
   private int pageSize;
   private int totalPageCount;
 
-  public ManufacturerPresenter(@ActivityContext Context context, RestClient restClient) {
+  public ManufacturerPresenter(RestClient restClient) {
     this.restClient = restClient;
-    this.context = context;
   }
 
   @Override
@@ -75,10 +72,10 @@ public class ManufacturerPresenter implements Presenter<ManufacturerView> {
   }
 
   private Subscription subscribeManufactuers(int page) {
-    Observable<Response<APIResponse>> manufacturer = restClient.getCarService()
+    Observable<Response<APIResponse>> response = restClient.getCarService()
         .getManufacturers(restClient.getToken(), page, PAGE_SIZE);
 
-    return manufacturer
+    return response
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .doOnNext(this::getManufacturers)

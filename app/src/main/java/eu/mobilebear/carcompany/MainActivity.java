@@ -1,6 +1,8 @@
 package eu.mobilebear.carcompany;
 
-import static eu.mobilebear.carcompany.utils.FragmentUtils.*;
+import static eu.mobilebear.carcompany.utils.FragmentUtils.BUILT_DATES_FRAGMENT;
+import static eu.mobilebear.carcompany.utils.FragmentUtils.MAIN_TYPES_FRAGMENT;
+import static eu.mobilebear.carcompany.utils.FragmentUtils.MANUFACTURER_FRAGMENT;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -12,6 +14,7 @@ import android.widget.FrameLayout;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import eu.mobilebear.carcompany.fragments.BuiltDateFragment;
 import eu.mobilebear.carcompany.fragments.MainTypeFragment;
 import eu.mobilebear.carcompany.fragments.ManufacturersFragment;
 import eu.mobilebear.carcompany.injection.Injector;
@@ -69,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
     return carComponent;
   }
 
-  public void replaceFragment(@TagFragment String tag, String manufacturerId) {
+  public void replaceFragment(@TagFragment String tag, String manufacturerId, String mainTypeId) {
     Fragment fragment = fragmentManager.findFragmentByTag(tag);
     switch (tag) {
       case MANUFACTURER_FRAGMENT:
@@ -79,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         fragment = MainTypeFragment.newInstance(manufacturerId);
         break;
       case BUILT_DATES_FRAGMENT:
+        fragment = BuiltDateFragment.newInstance(manufacturerId, mainTypeId);
         break;
     }
     if (fragment != null) {

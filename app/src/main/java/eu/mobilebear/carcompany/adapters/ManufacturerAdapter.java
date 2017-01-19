@@ -88,7 +88,7 @@ public class ManufacturerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     oddViewHolder.manufacturerName.setText(manufacturers.get(position).getName());
     oddViewHolder.backgroundLinearLayout.setBackgroundColor(oddViewHolder.color);
     oddViewHolder.itemView.setOnClickListener(view -> {
-      activity.replaceFragment(MAIN_TYPES_FRAGMENT, manufacturers.get(position).getId());
+      activity.replaceFragment(MAIN_TYPES_FRAGMENT, manufacturers.get(position).getId(), null);
     });
   }
 
@@ -96,7 +96,7 @@ public class ManufacturerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     evenViewHolder.manufacturerName.setText(manufacturers.get(position).getName());
     evenViewHolder.backgroundLinearLayout.setBackgroundColor(evenViewHolder.color);
     evenViewHolder.itemView.setOnClickListener(view -> {
-      activity.replaceFragment(MAIN_TYPES_FRAGMENT, manufacturers.get(position).getId());
+      activity.replaceFragment(MAIN_TYPES_FRAGMENT, manufacturers.get(position).getId(), null);
     });
   }
 
