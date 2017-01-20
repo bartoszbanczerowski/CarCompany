@@ -7,13 +7,13 @@ interface Presenter<T> {
 
   /**
    * Method that control the lifecycle of the view. It should be called in the view's (Activity or
-   * Fragment) onResume() method.
+   * Fragment) onStart() method.
    */
   void onStart();
 
   /**
    * Method that control the lifecycle of the view. It should be called in the view's (Activity or
-   * Fragment) onResume() method.
+   * Fragment) onStop() method.
    */
   void onStop();
 

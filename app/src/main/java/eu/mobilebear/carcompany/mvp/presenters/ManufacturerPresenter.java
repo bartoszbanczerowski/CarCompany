@@ -1,9 +1,8 @@
 package eu.mobilebear.carcompany.mvp.presenters;
 
+import static eu.mobilebear.carcompany.rest.RestClient.PAGE_SIZE;
 import static java.net.HttpURLConnection.HTTP_OK;
 
-import android.content.Context;
-import eu.mobilebear.carcompany.injection.annotations.ActivityContext;
 import eu.mobilebear.carcompany.mvp.model.APIResponse;
 import eu.mobilebear.carcompany.mvp.model.Manufacturer;
 import eu.mobilebear.carcompany.mvp.view.ManufacturerView;
@@ -13,28 +12,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import retrofit2.Response;
-import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
-import timber.log.Timber;
+import rx.subscriptions.CompositeSubscription;
 
 /**
  * @author bartoszbanczerowski@gmail.com Created on 16.01.2017.
  */
 public class ManufacturerPresenter implements Presenter<ManufacturerView> {
 
-  public static final int PAGE_SIZE = 10;
-  public static final int PAGE = 0;
+  private static final int START_PAGE = 0;
 
   private RestClient restClient;
-  private Subscription manufacturersSubscription;
-
+  private CompositeSubscription compositeSubscription;
   private List<Manufacturer> manufacturers;
   private ManufacturerView view;
-  private int page;
-  private int pageSize;
-  private int totalPageCount;
 
   public ManufacturerPresenter(RestClient restClient) {
     this.restClient = restClient;
@@ -44,15 +37,16 @@ public class ManufacturerPresenter implements Presenter<ManufacturerView> {
   public void onStart() {
     view.showLoading();
     manufacturers = new ArrayList<>();
-    manufacturersSubscription = subscribeManufactuers(0);
-
+    compositeSubscription = new CompositeSubscription();
+    compositeSubscription.add(getManufacturersFromPage(START_PAGE));
   }
 
   @Override
   public void onStop() {
+    view.dismissLoading();
     manufacturers.clear();
-    if (manufacturersSubscription != null && manufacturersSubscription.isUnsubscribed()) {
-      manufacturersSubscription.unsubscribe();
+    if (compositeSubscription != null && compositeSubscription.isUnsubscribed()) {
+      compositeSubscription.unsubscribe();
     }
   }
 
@@ -71,30 +65,41 @@ public class ManufacturerPresenter implements Presenter<ManufacturerView> {
     this.view = view;
   }
 
-  private Subscription subscribeManufactuers(int page) {
-    Observable<Response<APIResponse>> response = restClient.getCarService()
-        .getManufacturers(restClient.getToken(), page, PAGE_SIZE);
-
-    return response
+  private Subscription getManufacturersFromPage(int page) {
+    return restClient.getCarService()
+        .getManufacturers(restClient.getToken(), page, PAGE_SIZE)
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(this::getManufacturers)
-        .doOnError(throwable -> Timber.e(throwable.getMessage()))
-        .doOnCompleted(() -> view.showManufacturers(manufacturers))
-        .subscribe();
+        .subscribe(this::retrieveData, throwable -> view.showError(throwable.getMessage()));
   }
 
-
-  private void getManufacturers(Response<APIResponse> response) {
+  private void retrieveData(Response<APIResponse> response) {
     if (response.code() != HTTP_OK) {
       view.showError("Something went wrong: " + response.errorBody().toString());
       return;
     }
-    HashMap<String, String> manufacturersHashMap = response.body().getItems();
+    getManufacturers(response);
+  }
+
+
+  private void getManufacturers(Response<APIResponse> response) {
+    APIResponse apiResponse = response.body();
+    HashMap<String, String> manufacturersHashMap = apiResponse.getItems();
 
     for (Entry<String, String> entry : manufacturersHashMap.entrySet()) {
       manufacturers.add(new Manufacturer(entry.getKey(), entry.getValue()));
     }
+    view.showManufacturers(manufacturers);
+    view.dismissLoading();
+
+    if (hasNextPage(apiResponse.getPage(), apiResponse.getTotalPageCount())) {
+      manufacturers.clear();
+      compositeSubscription.add(getManufacturersFromPage(apiResponse.getPage() + 1));
+    }
+  }
+
+  private boolean hasNextPage(int currentPage, int pageTotalCount) {
+    return pageTotalCount > currentPage;
   }
 
 }

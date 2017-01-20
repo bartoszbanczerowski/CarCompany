@@ -4,6 +4,7 @@ import android.content.Context;
 import dagger.Component;
 import eu.mobilebear.carcompany.MainActivity;
 import eu.mobilebear.carcompany.fragments.BuiltDateFragment;
+import eu.mobilebear.carcompany.fragments.CarSearchFragment;
 import eu.mobilebear.carcompany.fragments.MainTypeFragment;
 import eu.mobilebear.carcompany.fragments.ManufacturersFragment;
 import eu.mobilebear.carcompany.injection.annotations.ActivityContext;
@@ -26,6 +27,8 @@ public interface CarComponent {
   void inject(MainTypeFragment fragment);
 
   void inject(BuiltDateFragment fragment);
+
+  void inject(CarSearchFragment fragment);
 
   @ActivityContext
   Context getActivityContext();

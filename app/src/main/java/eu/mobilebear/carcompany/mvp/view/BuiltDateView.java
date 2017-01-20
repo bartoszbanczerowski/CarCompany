@@ -6,11 +6,8 @@ import java.util.List;
 /**
  * @author bartoszbanczerowski@gmail.com Created on 19.01.2017.
  */
-public interface BuiltDateView {
+public interface BuiltDateView extends View {
 
   void showBuiltDates(List<BuiltDate> builtDates);
 
-  void showLoading();
-
-  void showError(String message);
 }

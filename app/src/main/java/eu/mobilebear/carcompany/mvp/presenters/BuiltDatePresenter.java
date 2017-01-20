@@ -2,8 +2,6 @@ package eu.mobilebear.carcompany.mvp.presenters;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
-import android.content.Context;
-import eu.mobilebear.carcompany.injection.annotations.ActivityContext;
 import eu.mobilebear.carcompany.mvp.model.APIResponse;
 import eu.mobilebear.carcompany.mvp.model.BuiltDate;
 import eu.mobilebear.carcompany.mvp.view.BuiltDateView;
@@ -13,11 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import retrofit2.Response;
-import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
-import timber.log.Timber;
+import rx.subscriptions.CompositeSubscription;
 
 /**
  * @author bartoszbanczerowski@gmail.com Created on 19.01.2017.
@@ -25,9 +22,9 @@ import timber.log.Timber;
 
 public class BuiltDatePresenter implements Presenter<BuiltDateView> {
 
-  private Subscription builtDatesSubscription;
-  private BuiltDateView view;
   private RestClient restClient;
+  private CompositeSubscription compositeSubscription;
+  private BuiltDateView view;
   private List<BuiltDate> builtDates;
   private String manufacturerId;
   private String mainTypeId;
@@ -41,14 +38,15 @@ public class BuiltDatePresenter implements Presenter<BuiltDateView> {
   public void onStart() {
     view.showLoading();
     builtDates = new ArrayList<>();
-    builtDatesSubscription = getBuiltDatesSubscription();
+    compositeSubscription = new CompositeSubscription();
+    compositeSubscription.add(getBuiltDatesFromPage());
   }
 
   @Override
   public void onStop() {
     builtDates.clear();
-    if (builtDatesSubscription != null && builtDatesSubscription.isUnsubscribed()) {
-      builtDatesSubscription.unsubscribe();
+    if (compositeSubscription != null && compositeSubscription.isUnsubscribed()) {
+      compositeSubscription.unsubscribe();
     }
   }
 
@@ -72,29 +70,32 @@ public class BuiltDatePresenter implements Presenter<BuiltDateView> {
     this.mainTypeId = mainTypeId;
   }
 
-  private Subscription getBuiltDatesSubscription() {
-    Observable<Response<APIResponse>> response = restClient.getCarService()
-        .getBuiltDates(restClient.getToken(), manufacturerId, mainTypeId);
-
-    return response
+  private Subscription getBuiltDatesFromPage() {
+    return restClient.getCarService()
+        .getBuiltDates(restClient.getToken(), manufacturerId, mainTypeId)
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(this::getBuiltDates)
-        .doOnError(throwable -> Timber.e(throwable.getMessage()))
-        .doOnCompleted(() -> view.showBuiltDates(builtDates))
-        .subscribe();
+        .subscribe(this::retrieveData, throwable -> view.showError(throwable.getMessage()));
   }
 
-
-  private void getBuiltDates(Response<APIResponse> response) {
+  private void retrieveData(Response<APIResponse> response) {
     if (response.code() != HTTP_OK) {
       view.showError("Something went wrong: " + response.errorBody().toString());
       return;
     }
-    HashMap<String, String> manufacturersHashMap = response.body().getItems();
+    getMainTypes(response);
+  }
+
+
+  private void getMainTypes(Response<APIResponse> response) {
+    APIResponse apiResponse = response.body();
+    HashMap<String, String> manufacturersHashMap = apiResponse.getItems();
 
     for (Entry<String, String> entry : manufacturersHashMap.entrySet()) {
       builtDates.add(new BuiltDate(entry.getKey(), entry.getValue()));
     }
+    view.showBuiltDates(builtDates);
+    view.dismissLoading();
   }
+
 }

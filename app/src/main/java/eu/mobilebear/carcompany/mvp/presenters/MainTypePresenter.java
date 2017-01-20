@@ -2,8 +2,6 @@ package eu.mobilebear.carcompany.mvp.presenters;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
-import android.content.Context;
-import eu.mobilebear.carcompany.injection.annotations.ActivityContext;
 import eu.mobilebear.carcompany.mvp.model.APIResponse;
 import eu.mobilebear.carcompany.mvp.model.MainType;
 import eu.mobilebear.carcompany.mvp.view.MainTypeView;
@@ -13,45 +11,43 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import retrofit2.Response;
-import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
-import timber.log.Timber;
+import rx.subscriptions.CompositeSubscription;
 
 /**
  * @author bartoszbanczerowski@gmail.com Created on 19.01.2017.
  */
 public class MainTypePresenter implements Presenter<MainTypeView> {
 
+  private static final int START_PAGE = 0;
+
   private RestClient restClient;
-  private Subscription mainTypeSubscription;
+  private CompositeSubscription compositeSubscription;
   private MainTypeView view;
   private List<MainType> mainTypes;
-
-
   private String manufacturerId;
-  private int page;
-  private int pageSize;
-  private int totalPageCount;
+
 
   public MainTypePresenter(RestClient restClient) {
     this.restClient = restClient;
   }
 
-
   @Override
   public void onStart() {
     view.showLoading();
     mainTypes = new ArrayList<>();
-    mainTypeSubscription = getMainTypes();
+    compositeSubscription = new CompositeSubscription();
+    compositeSubscription.add(getMainTypesFromPage(START_PAGE));
   }
 
   @Override
   public void onStop() {
+    view.dismissLoading();
     mainTypes.clear();
-    if (mainTypeSubscription != null && mainTypeSubscription.isUnsubscribed()) {
-      mainTypeSubscription.unsubscribe();
+    if (compositeSubscription != null && compositeSubscription.isUnsubscribed()) {
+      compositeSubscription.unsubscribe();
     }
   }
 
@@ -74,31 +70,41 @@ public class MainTypePresenter implements Presenter<MainTypeView> {
     this.manufacturerId = manufacturerId;
   }
 
-  private Subscription getMainTypes() {
-    Observable<Response<APIResponse>> response = restClient.getCarService()
-        .getMainTypes(restClient.getToken(), 0, 10, manufacturerId);
-
-    return response
+  private Subscription getMainTypesFromPage(int page) {
+    return restClient.getCarService()
+        .getMainTypes(restClient.getToken(), page, 10, manufacturerId)
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
-        .doOnNext(this::getManufacturers)
-        .doOnError(throwable -> Timber.e(throwable.getMessage()))
-        .doOnCompleted(() -> view.showMainTypes(mainTypes))
-        .subscribe();
+        .subscribe(this::retrieveData, throwable -> view.showError(throwable.getMessage()));
   }
 
-
-  private void getManufacturers(Response<APIResponse> response) {
+  private void retrieveData(Response<APIResponse> response) {
     if (response.code() != HTTP_OK) {
       view.showError("Something went wrong: " + response.errorBody().toString());
       return;
     }
-    HashMap<String, String> manufacturersHashMap = response.body().getItems();
+    getMainTypes(response);
+  }
+
+
+  private void getMainTypes(Response<APIResponse> response) {
+    APIResponse apiResponse = response.body();
+    HashMap<String, String> manufacturersHashMap = apiResponse.getItems();
 
     for (Entry<String, String> entry : manufacturersHashMap.entrySet()) {
       mainTypes.add(new MainType(entry.getKey(), entry.getValue()));
     }
+    view.showMainTypes(mainTypes);
+    view.dismissLoading();
+
+    if (hasNextPage(apiResponse.getPage(), apiResponse.getTotalPageCount())) {
+      mainTypes.clear();
+      compositeSubscription.add(getMainTypesFromPage(apiResponse.getPage() + 1));
+    }
   }
 
+  private boolean hasNextPage(int currentPage, int pageTotalCount) {
+    return pageTotalCount > currentPage;
+  }
 
 }

@@ -6,9 +6,13 @@ import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import butterknife.BindColor;
@@ -17,19 +21,22 @@ import butterknife.ButterKnife;
 import eu.mobilebear.carcompany.MainActivity;
 import eu.mobilebear.carcompany.R;
 import eu.mobilebear.carcompany.mvp.model.MainType;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author bartoszbanczerowski@gmail.com Created on 19.01.2017.
  */
 
-public class MainTypeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class MainTypeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements
+    Filterable {
 
   private static final int EVEN_ROW_TYPE = 0;
   private static final int ODD_ROW_TYPE = 1;
   private static final int PROGRESS_BAR_TYPE = 2;
 
   private List<MainType> mainTypes;
+  private List<MainType> originalMainTypes;
   private MainActivity activity;
   private String manufacturerId;
 
@@ -37,6 +44,7 @@ public class MainTypeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
       @Nullable List<MainType> mainTypes) {
     this.activity = (MainActivity) activity;
     this.mainTypes = mainTypes;
+    this.originalMainTypes = mainTypes;
     this.manufacturerId = manufacturerId;
   }
 
@@ -83,10 +91,6 @@ public class MainTypeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     return mainTypes.size();
   }
 
-  private void configureProgressBarViewHolder() {
-
-  }
-
   private void configureOddViewHolder(OddViewHolder oddViewHolder,
       final int position) {
     oddViewHolder.manufacturerName.setText(mainTypes.get(position).getName());
@@ -107,10 +111,45 @@ public class MainTypeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     });
   }
 
+  @Override
+  public Filter getFilter() {
+    return new Filter() {
+      @Override
+      protected FilterResults performFiltering(CharSequence filter) {
+        FilterResults results = new FilterResults();
+        List<MainType> filteredMainTypes = new ArrayList<>();
+
+        if (!TextUtils.isEmpty(filter)) {
+          filter = filter.toString();
+          for (MainType mainType : originalMainTypes) {
+            if (mainType.getName().contains(filter)) {
+              filteredMainTypes.add(mainType);
+            }
+          }
+          results.count = filteredMainTypes.size();
+          results.values = filteredMainTypes;
+        } else {
+          results.count = originalMainTypes.size();
+          results.values = originalMainTypes;
+        }
+        return results;
+      }
+
+      @Override
+      protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+        mainTypes = (List<MainType>) filterResults.values;
+        notifyDataSetChanged();
+      }
+    };
+  }
+
   class OddViewHolder extends RecyclerView.ViewHolder {
 
     @BindView(R.id.itemBackgroundLinearLayout)
     LinearLayout backgroundLinearLayout;
+
+    @BindView(R.id.searchItemCheckBox)
+    CheckBox searchItemCheckBox;
 
     @BindView(R.id.nameTextView)
     TextView manufacturerName;
@@ -128,6 +167,9 @@ public class MainTypeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @BindView(R.id.itemBackgroundLinearLayout)
     LinearLayout backgroundLinearLayout;
+
+    @BindView(R.id.searchItemCheckBox)
+    CheckBox searchItemCheckBox;
 
     @BindView(R.id.nameTextView)
     TextView manufacturerName;

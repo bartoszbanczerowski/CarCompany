@@ -8,6 +8,7 @@ import retrofit2.Retrofit;
  */
 public class RestClient {
 
+  public static final int PAGE_SIZE = 10;
   private static final String token = "coding-puzzle-client-449cc9d";
 
   private CarService carService;

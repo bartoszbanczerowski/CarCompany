@@ -1,9 +1,7 @@
 package eu.mobilebear.carcompany.injection.modules;
 
-import android.content.Context;
 import dagger.Module;
 import dagger.Provides;
-import eu.mobilebear.carcompany.injection.annotations.ActivityContext;
 import eu.mobilebear.carcompany.injection.annotations.PerActivity;
 import eu.mobilebear.carcompany.mvp.presenters.BuiltDatePresenter;
 import eu.mobilebear.carcompany.mvp.presenters.MainTypePresenter;
@@ -30,7 +28,7 @@ public class CarModule {
 
   @PerActivity
   @Provides
-  public BuiltDatePresenter provideBuiltDatePresenter(RestClient restClient){
+  public BuiltDatePresenter provideBuiltDatePresenter(RestClient restClient) {
     return new BuiltDatePresenter(restClient);
   }
 

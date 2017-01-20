@@ -6,11 +6,8 @@ import java.util.List;
 /**
  * @author bartoszbanczerowski@gmail.com Created on 16.01.2017.
  */
-public interface ManufacturerView {
+public interface ManufacturerView extends View {
 
   void showManufacturers(List<Manufacturer> manufacturerResponses);
 
-  void showLoading();
-
-  void showError(String message);
 }

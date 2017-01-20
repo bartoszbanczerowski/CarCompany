@@ -2,6 +2,7 @@ package eu.mobilebear.carcompany;
 
 import android.app.Application;
 import eu.mobilebear.carcompany.injection.Injector;
+import io.realm.Realm;
 import timber.log.Timber;
 
 /**
@@ -14,6 +15,7 @@ public class CarCompanyApplication extends Application {
     super.onCreate();
     initLogging();
     initDagger();
+    initRealm();
   }
 
   private void initDagger() {
@@ -25,6 +27,9 @@ public class CarCompanyApplication extends Application {
     if (BuildConfig.DEBUG) {
       Timber.plant(new Timber.DebugTree());
     }
-//    Fabric.with(this, new Crashlytics(), new Answers());
+  }
+
+  private void initRealm(){
+    Realm.init(this);
   }
 }
