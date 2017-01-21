@@ -1,9 +1,11 @@
 package eu.mobilebear.carcompany.mvp.model;
 
+import io.realm.RealmModel;
+
 /**
  * @author bartoszbanczerowski@gmail.com Created on 19.01.2017.
  */
-class Item {
+class Item implements RealmModel {
 
   private String id;
   private String name;

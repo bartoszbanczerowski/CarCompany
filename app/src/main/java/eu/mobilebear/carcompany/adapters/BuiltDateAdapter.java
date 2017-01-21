@@ -1,5 +1,10 @@
 package eu.mobilebear.carcompany.adapters;
 
+import static eu.mobilebear.carcompany.utils.FragmentUtils.BUILT_DATES_FRAGMENT;
+import static eu.mobilebear.carcompany.utils.FragmentUtils.CAR_FRAGMENT;
+
+import android.app.Activity;
+import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -14,7 +19,9 @@ import android.widget.TextView;
 import butterknife.BindColor;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import eu.mobilebear.carcompany.MainActivity;
 import eu.mobilebear.carcompany.R;
+import eu.mobilebear.carcompany.injection.annotations.CarPreferences;
 import eu.mobilebear.carcompany.mvp.model.BuiltDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,22 +38,27 @@ public class BuiltDateAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
   private List<BuiltDate> originalBuiltDates;
   private List<BuiltDate> builtDates;
+  private MainActivity activity;
 
-  public BuiltDateAdapter(@Nullable List<BuiltDate> builtDates) {
+  @CarPreferences
+  private SharedPreferences sharedPreferences;
+
+  public BuiltDateAdapter(Activity activity, @Nullable List<BuiltDate> builtDates,
+      @CarPreferences SharedPreferences sharedPreferences) {
+    this.activity = (MainActivity) activity;
     this.builtDates = builtDates;
     this.originalBuiltDates = builtDates;
+    this.sharedPreferences = sharedPreferences;
   }
 
   @Override
   public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    View view = LayoutInflater.from(parent.getContext())
+        .inflate(R.layout.search_item, parent, false);
     switch (viewType) {
       case EVEN_ROW_TYPE:
-        View view = LayoutInflater.from(parent.getContext())
-            .inflate(R.layout.search_item, parent, false);
         return new EvenViewHolder(view);
       case ODD_ROW_TYPE:
-        view = LayoutInflater.from(parent.getContext())
-            .inflate(R.layout.search_item, parent, false);
         return new OddViewHolder(view);
     }
     return null;
@@ -78,14 +90,30 @@ public class BuiltDateAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
   private void configureOddViewHolder(OddViewHolder oddViewHolder,
       final int position) {
-    oddViewHolder.manufacturerName.setText(builtDates.get(position).getName());
+    oddViewHolder.name.setText(builtDates.get(position).getName());
     oddViewHolder.backgroundLinearLayout.setBackgroundColor(oddViewHolder.color);
+    oddViewHolder.itemView.setOnClickListener(view -> {
+      sharedPreferences.edit()
+          .putString(BUILT_DATES_FRAGMENT, builtDates.get(position).getName())
+          .apply();
+      activity.replaceFragment(CAR_FRAGMENT, null, null);
+    });
+    oddViewHolder.searchItemCheckBox.setOnCheckedChangeListener((compoundButton, b) ->
+        builtDates.get(position).setCheckedForSearch(compoundButton.isChecked()));
   }
 
   private void configureEvenViewHolder(EvenViewHolder evenViewHolder,
       final int position) {
-    evenViewHolder.manufacturerName.setText(builtDates.get(position).getName());
+    evenViewHolder.name.setText(builtDates.get(position).getName());
     evenViewHolder.backgroundLinearLayout.setBackgroundColor(evenViewHolder.color);
+    evenViewHolder.itemView.setOnClickListener(view -> {
+      sharedPreferences.edit()
+          .putString(BUILT_DATES_FRAGMENT, builtDates.get(position).getName())
+          .apply();
+      activity.replaceFragment(CAR_FRAGMENT, null, null);
+    });
+    evenViewHolder.searchItemCheckBox.setOnCheckedChangeListener((compoundButton, b) ->
+        builtDates.get(position).setCheckedForSearch(compoundButton.isChecked()));
   }
 
   @Override
@@ -129,7 +157,7 @@ public class BuiltDateAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     CheckBox searchItemCheckBox;
 
     @BindView(R.id.nameTextView)
-    TextView manufacturerName;
+    TextView name;
 
     @BindColor(R.color.oddRow)
     int color;
@@ -149,7 +177,7 @@ public class BuiltDateAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     CheckBox searchItemCheckBox;
 
     @BindView(R.id.nameTextView)
-    TextView manufacturerName;
+    TextView name;
 
     @BindColor(R.color.evenRow)
     int color;

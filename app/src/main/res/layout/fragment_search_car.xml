@@ -1,0 +1,25 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:layout_margin="@dimen/default_margin_top_density"
+  android:orientation="vertical"
+  app:layout_behavior="@string/appbar_scrolling_view_behavior"
+  tools:context="eu.mobilebear.carcompany.fragments.CarSearchFragment">
+
+  <android.support.v4.widget.NestedScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <android.support.v7.widget.RecyclerView
+      android:id="@+id/itemsRecyclerView"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:divider="@android:color/transparent"
+      android:scrollbars="vertical"
+      tools:listitem="@layout/car_item"/>
+
+  </android.support.v4.widget.NestedScrollView>
+</RelativeLayout>

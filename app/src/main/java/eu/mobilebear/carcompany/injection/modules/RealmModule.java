@@ -16,6 +16,7 @@ import javax.inject.Singleton;
 public class RealmModule {
 
   private static final String CARS_REALM = "cars.realm";
+  private static final long SCHEMA_VERSION = 2L;
 
   public RealmModule() {
   }
@@ -26,7 +27,7 @@ public class RealmModule {
   RealmConfiguration provideCarsRealmConfiguration() {
     return new RealmConfiguration.Builder()
         .name(CARS_REALM)
-        .schemaVersion(1)
+        .schemaVersion(SCHEMA_VERSION)
         .deleteRealmIfMigrationNeeded()
         .build();
   }

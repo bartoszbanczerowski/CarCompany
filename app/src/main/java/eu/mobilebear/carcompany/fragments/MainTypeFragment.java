@@ -1,6 +1,9 @@
 package eu.mobilebear.carcompany.fragments;
 
+import static eu.mobilebear.carcompany.utils.FragmentUtils.CAR_SEARCH_FRAGMENT;
+
 import android.app.ProgressDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -15,15 +18,22 @@ import android.widget.Button;
 import android.widget.EditText;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import butterknife.Unbinder;
 import eu.mobilebear.carcompany.MainActivity;
 import eu.mobilebear.carcompany.R;
 import eu.mobilebear.carcompany.adapters.MainTypeAdapter;
+import eu.mobilebear.carcompany.injection.annotations.CarPreferences;
+import eu.mobilebear.carcompany.injection.annotations.GetCars;
 import eu.mobilebear.carcompany.injection.components.CarComponent;
 import eu.mobilebear.carcompany.mvp.model.MainType;
+import eu.mobilebear.carcompany.mvp.model.Search;
+import eu.mobilebear.carcompany.mvp.model.SearchCriteria;
 import eu.mobilebear.carcompany.mvp.presenters.MainTypePresenter;
 import eu.mobilebear.carcompany.mvp.view.MainTypeView;
 import eu.mobilebear.carcompany.utils.FragmentUtils;
+import io.realm.Realm;
+import io.realm.RealmList;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
@@ -32,6 +42,14 @@ public class MainTypeFragment extends Fragment implements MainTypeView {
 
   @Inject
   MainTypePresenter mainTypePresenter;
+
+  @Inject
+  @GetCars
+  Realm realm;
+
+  @Inject
+  @CarPreferences
+  SharedPreferences carSharedPreferences;
 
   @BindView(R.id.itemsRecyclerView)
   RecyclerView mainTypeRecyclerView;
@@ -92,7 +110,8 @@ public class MainTypeFragment extends Fragment implements MainTypeView {
 
     LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
     mainTypeRecyclerView.setLayoutManager(linearLayoutManager);
-    mainTypeAdapter = new MainTypeAdapter(getActivity(), manufacturerId, mainTypes);
+    mainTypeAdapter = new MainTypeAdapter(getActivity(), manufacturerId, mainTypes,
+        carSharedPreferences);
     mainTypeRecyclerView.setAdapter(mainTypeAdapter);
     mainTypeRecyclerView.setNestedScrollingEnabled(false);
     filterEditText.addTextChangedListener(new TextWatcher() {
@@ -111,7 +130,6 @@ public class MainTypeFragment extends Fragment implements MainTypeView {
       }
     });
   }
-
 
   @Override
   public void showMainTypes(List<MainType> mainTypes) {
@@ -156,9 +174,34 @@ public class MainTypeFragment extends Fragment implements MainTypeView {
   @Override
   public void onStop() {
     super.onStop();
-    dismissProgressDialog();
     mainTypePresenter.onStop();
   }
+
+  @OnClick(R.id.searchButton)
+  void searchCars() {
+    RealmList<Search> manufacturersSearches = new RealmList<>();
+    manufacturersSearches.add(new Search(manufacturerId));
+    RealmList<Search> mainTypesSearches = new RealmList<>();
+    for (MainType mainType : mainTypes) {
+      if (mainType.isCheckedForSearch()) {
+        mainTypesSearches.add(new Search(mainType.getId()));
+      }
+    }
+
+    if (!mainTypesSearches.isEmpty()) {
+      realm.executeTransaction(
+          realm1 -> realm1.copyToRealmOrUpdate(
+              new SearchCriteria(manufacturersSearches, mainTypesSearches)));
+      getActivity().getSupportFragmentManager().beginTransaction()
+          .replace(R.id.container, CarSearchFragment.newInstance(), CAR_SEARCH_FRAGMENT)
+          .addToBackStack(CAR_SEARCH_FRAGMENT)
+          .commit();
+    } else {
+      showError("You have to select at least one main type.");
+    }
+
+  }
+
 
   private void injectDependencies() {
     if (getActivity() instanceof MainActivity) {

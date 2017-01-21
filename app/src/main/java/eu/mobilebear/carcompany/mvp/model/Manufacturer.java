@@ -9,12 +9,8 @@ public class Manufacturer extends Item {
   private boolean isCheckedForSearch;
 
   public Manufacturer(String id, String name) {
-    this(id, name, false);
-  }
-
-  public Manufacturer(String id, String name, boolean isCheckedForSearch) {
     super(id, name);
-    this.isCheckedForSearch = isCheckedForSearch;
+    this.isCheckedForSearch = false;
   }
 
   public boolean isCheckedForSearch() {

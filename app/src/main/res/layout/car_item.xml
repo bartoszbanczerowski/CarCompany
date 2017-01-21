@@ -11,7 +11,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:padding="5dp"/>
+    android:padding="@dimen/default_padding"/>
 
   <LinearLayout
     android:layout_width="match_parent"
@@ -19,20 +19,20 @@
     android:orientation="horizontal">
 
     <TextView
-      android:layout_weight="1"
       android:id="@+id/mainTypeTextView"
       android:layout_width="0dp"
       android:layout_height="match_parent"
+      android:layout_weight="1"
       android:layout_gravity="center"
-      android:padding="5dp"/>
+      android:padding="@dimen/default_padding"/>
 
     <TextView
-      android:layout_weight="1"
       android:id="@+id/builtDateTextView"
       android:layout_width="0dp"
       android:layout_height="match_parent"
+      android:layout_weight="1"
       android:layout_gravity="center"
-      android:padding="5dp"/>
+      android:padding="@dimen/default_padding"/>
 
   </LinearLayout>
 </LinearLayout>

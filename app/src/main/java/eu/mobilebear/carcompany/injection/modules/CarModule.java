@@ -4,6 +4,7 @@ import dagger.Module;
 import dagger.Provides;
 import eu.mobilebear.carcompany.injection.annotations.PerActivity;
 import eu.mobilebear.carcompany.mvp.presenters.BuiltDatePresenter;
+import eu.mobilebear.carcompany.mvp.presenters.CarPresenter;
 import eu.mobilebear.carcompany.mvp.presenters.MainTypePresenter;
 import eu.mobilebear.carcompany.mvp.presenters.ManufacturerPresenter;
 import eu.mobilebear.carcompany.rest.RestClient;
@@ -30,6 +31,12 @@ public class CarModule {
   @Provides
   BuiltDatePresenter provideBuiltDatePresenter(RestClient restClient) {
     return new BuiltDatePresenter(restClient);
+  }
+
+  @PerActivity
+  @Provides
+  CarPresenter provideCarPresenter(RestClient restClient) {
+    return new CarPresenter(restClient);
   }
 
 }

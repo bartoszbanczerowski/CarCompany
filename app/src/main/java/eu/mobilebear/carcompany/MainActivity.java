@@ -1,6 +1,7 @@
 package eu.mobilebear.carcompany;
 
 import static eu.mobilebear.carcompany.utils.FragmentUtils.BUILT_DATES_FRAGMENT;
+import static eu.mobilebear.carcompany.utils.FragmentUtils.CAR_FRAGMENT;
 import static eu.mobilebear.carcompany.utils.FragmentUtils.CAR_SEARCH_FRAGMENT;
 import static eu.mobilebear.carcompany.utils.FragmentUtils.MAIN_TYPES_FRAGMENT;
 import static eu.mobilebear.carcompany.utils.FragmentUtils.MANUFACTURER_FRAGMENT;
@@ -16,6 +17,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import eu.mobilebear.carcompany.fragments.BuiltDateFragment;
+import eu.mobilebear.carcompany.fragments.CarFragment;
 import eu.mobilebear.carcompany.fragments.CarSearchFragment;
 import eu.mobilebear.carcompany.fragments.MainTypeFragment;
 import eu.mobilebear.carcompany.fragments.ManufacturersFragment;
@@ -88,6 +90,9 @@ public class MainActivity extends AppCompatActivity {
         break;
       case CAR_SEARCH_FRAGMENT:
         fragment = CarSearchFragment.newInstance();
+        break;
+      case CAR_FRAGMENT:
+        fragment = CarFragment.newInstance();
     }
     if (fragment != null) {
       fragmentManager.beginTransaction()
@@ -96,5 +101,4 @@ public class MainActivity extends AppCompatActivity {
           .commit();
     }
   }
-
 }

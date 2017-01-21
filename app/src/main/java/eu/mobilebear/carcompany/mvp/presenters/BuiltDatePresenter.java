@@ -44,6 +44,7 @@ public class BuiltDatePresenter implements Presenter<BuiltDateView> {
 
   @Override
   public void onStop() {
+    view.dismissLoading();
     builtDates.clear();
     if (compositeSubscription != null && compositeSubscription.isUnsubscribed()) {
       compositeSubscription.unsubscribe();

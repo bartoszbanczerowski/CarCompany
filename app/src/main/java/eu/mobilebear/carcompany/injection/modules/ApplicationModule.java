@@ -16,7 +16,7 @@ import javax.inject.Singleton;
 @Module
 public class ApplicationModule {
 
-  private static final String USER_PREFERENCES = "userPreferences";
+  private static final String CAR_PREFERENCES = "userPreferences";
   private CarCompanyApplication application;
 
   public ApplicationModule(CarCompanyApplication application) {
@@ -40,6 +40,6 @@ public class ApplicationModule {
   @Provides
   @CarPreferences
   SharedPreferences getCarPreferences(@ApplicationContext Context context) {
-    return context.getSharedPreferences(USER_PREFERENCES, Context.MODE_PRIVATE);
+    return context.getSharedPreferences(CAR_PREFERENCES, Context.MODE_PRIVATE);
   }
 }

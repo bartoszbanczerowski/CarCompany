@@ -1,8 +1,10 @@
 package eu.mobilebear.carcompany.adapters;
 
 import static eu.mobilebear.carcompany.utils.FragmentUtils.MAIN_TYPES_FRAGMENT;
+import static eu.mobilebear.carcompany.utils.FragmentUtils.MANUFACTURER_FRAGMENT;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -20,6 +22,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import eu.mobilebear.carcompany.MainActivity;
 import eu.mobilebear.carcompany.R;
+import eu.mobilebear.carcompany.injection.annotations.CarPreferences;
 import eu.mobilebear.carcompany.mvp.model.Manufacturer;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,32 +35,32 @@ public class ManufacturerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
   private static final int EVEN_ROW_TYPE = 0;
   private static final int ODD_ROW_TYPE = 1;
-  private static final int PROGRESS_BAR_TYPE = 2;
 
   private List<Manufacturer> manufacturers;
   private List<Manufacturer> originalManufacturers;
   private MainActivity activity;
 
+  @CarPreferences
+  private SharedPreferences sharedPreferences;
+
   public ManufacturerAdapter(@NonNull final Activity activity,
-      @Nullable List<Manufacturer> manufacturers) {
+      @Nullable List<Manufacturer> manufacturers,
+      @CarPreferences SharedPreferences sharedPreferences) {
     this.activity = (MainActivity) activity;
     this.manufacturers = manufacturers;
     this.originalManufacturers = manufacturers;
+    this.sharedPreferences = sharedPreferences;
   }
 
   @Override
   public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    View view = LayoutInflater.from(parent.getContext())
+        .inflate(R.layout.search_item, parent, false);
     switch (viewType) {
       case EVEN_ROW_TYPE:
-        View view = LayoutInflater.from(parent.getContext())
-            .inflate(R.layout.search_item, parent, false);
         return new EvenViewHolder(view);
       case ODD_ROW_TYPE:
-        view = LayoutInflater.from(parent.getContext())
-            .inflate(R.layout.search_item, parent, false);
         return new OddViewHolder(view);
-      case PROGRESS_BAR_TYPE:
-        break;
     }
     return null;
   }
@@ -72,8 +75,6 @@ public class ManufacturerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
       case ODD_ROW_TYPE:
         OddViewHolder oddViewHolder = (OddViewHolder) holder;
         configureOddViewHolder(oddViewHolder, position);
-        break;
-      case PROGRESS_BAR_TYPE:
         break;
     }
   }
@@ -92,20 +93,26 @@ public class ManufacturerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     oddViewHolder.manufacturerName.setText(manufacturers.get(position).getName());
     oddViewHolder.backgroundLinearLayout.setBackgroundColor(oddViewHolder.color);
     oddViewHolder.itemView.setOnClickListener(view -> {
+      sharedPreferences.edit()
+          .putString(MANUFACTURER_FRAGMENT, manufacturers.get(position).getName())
+          .apply();
       activity.replaceFragment(MAIN_TYPES_FRAGMENT, manufacturers.get(position).getId(), null);
     });
     oddViewHolder.searchItemCheckBox.setOnCheckedChangeListener((compoundButton, b) ->
-        originalManufacturers.get(position).setCheckedForSearch(compoundButton.isChecked()));
+        manufacturers.get(position).setCheckedForSearch(compoundButton.isChecked()));
   }
 
   private void configureEvenViewHolder(EvenViewHolder evenViewHolder, final int position) {
     evenViewHolder.manufacturerName.setText(manufacturers.get(position).getName());
     evenViewHolder.backgroundLinearLayout.setBackgroundColor(evenViewHolder.color);
     evenViewHolder.itemView.setOnClickListener(view -> {
+      sharedPreferences.edit()
+          .putString(MANUFACTURER_FRAGMENT, manufacturers.get(position).getName())
+          .apply();
       activity.replaceFragment(MAIN_TYPES_FRAGMENT, manufacturers.get(position).getId(), null);
     });
     evenViewHolder.searchItemCheckBox.setOnCheckedChangeListener((compoundButton, b) ->
-        originalManufacturers.get(position).setCheckedForSearch(compoundButton.isChecked()));
+        manufacturers.get(position).setCheckedForSearch(compoundButton.isChecked()));
   }
 
   @Override

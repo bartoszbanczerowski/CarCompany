@@ -1,6 +1,9 @@
 package eu.mobilebear.carcompany.fragments;
 
+import static eu.mobilebear.carcompany.utils.FragmentUtils.CAR_SEARCH_FRAGMENT;
+
 import android.app.ProgressDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -20,11 +23,17 @@ import butterknife.Unbinder;
 import eu.mobilebear.carcompany.MainActivity;
 import eu.mobilebear.carcompany.R;
 import eu.mobilebear.carcompany.adapters.BuiltDateAdapter;
+import eu.mobilebear.carcompany.injection.annotations.CarPreferences;
+import eu.mobilebear.carcompany.injection.annotations.GetCars;
 import eu.mobilebear.carcompany.injection.components.CarComponent;
 import eu.mobilebear.carcompany.mvp.model.BuiltDate;
+import eu.mobilebear.carcompany.mvp.model.Search;
+import eu.mobilebear.carcompany.mvp.model.SearchCriteria;
 import eu.mobilebear.carcompany.mvp.presenters.BuiltDatePresenter;
 import eu.mobilebear.carcompany.mvp.view.BuiltDateView;
 import eu.mobilebear.carcompany.utils.FragmentUtils;
+import io.realm.Realm;
+import io.realm.RealmList;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
@@ -33,6 +42,14 @@ public class BuiltDateFragment extends Fragment implements BuiltDateView {
 
   @Inject
   BuiltDatePresenter builtDatePresenter;
+
+  @Inject
+  @GetCars
+  Realm realm;
+
+  @Inject
+  @CarPreferences
+  SharedPreferences carPreferences;
 
   @BindView(R.id.itemsRecyclerView)
   RecyclerView builtDatesRecyclerView;
@@ -47,6 +64,8 @@ public class BuiltDateFragment extends Fragment implements BuiltDateView {
   private List<BuiltDate> builtDates;
   private ProgressDialog progressDialog;
   private Unbinder unbinder;
+  private String manufacturerId;
+  private String mainTypeId;
 
   public BuiltDateFragment() {
   }
@@ -69,8 +88,8 @@ public class BuiltDateFragment extends Fragment implements BuiltDateView {
     builtDatePresenter.attachView(this);
 
     if (getArguments() != null) {
-      String manufacturerId = getArguments().getString(FragmentUtils.MANUFACTURER_FRAGMENT);
-      String mainTypeId = getArguments().getString(FragmentUtils.MAIN_TYPES_FRAGMENT);
+      manufacturerId = getArguments().getString(FragmentUtils.MANUFACTURER_FRAGMENT);
+      mainTypeId = getArguments().getString(FragmentUtils.MAIN_TYPES_FRAGMENT);
       builtDatePresenter.setSearchParameters(manufacturerId, mainTypeId);
     }
   }
@@ -88,7 +107,7 @@ public class BuiltDateFragment extends Fragment implements BuiltDateView {
     builtDates = new ArrayList<>();
     LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
     builtDatesRecyclerView.setLayoutManager(linearLayoutManager);
-    mainTypeAdapter = new BuiltDateAdapter(builtDates);
+    mainTypeAdapter = new BuiltDateAdapter(getActivity(), builtDates, carPreferences);
     builtDatesRecyclerView.setAdapter(mainTypeAdapter);
     builtDatesRecyclerView.setNestedScrollingEnabled(false);
     filterEditText.addTextChangedListener(new TextWatcher() {
@@ -158,14 +177,35 @@ public class BuiltDateFragment extends Fragment implements BuiltDateView {
   @Override
   public void onStop() {
     super.onStop();
-    dismissProgressDialog();
     builtDatePresenter.onStop();
   }
 
 
   @OnClick(R.id.searchButton)
   void searchCars() {
-    getActivity().getSupportFragmentManager();
+    RealmList<Search> manufacturersSearches = new RealmList<>();
+    RealmList<Search> mainTypesSearches = new RealmList<>();
+    manufacturersSearches.add(new Search(manufacturerId));
+    mainTypesSearches.add(new Search(mainTypeId));
+    RealmList<Search> builtDatesSearches = new RealmList<>();
+    for (BuiltDate builtDate : builtDates) {
+      if (builtDate.isCheckedForSearch()) {
+        builtDatesSearches.add(new Search(builtDate.getId()));
+      }
+    }
+
+    if (!builtDatesSearches.isEmpty()) {
+      realm.executeTransaction(
+          realm1 -> realm1.copyToRealmOrUpdate(new SearchCriteria(manufacturersSearches,
+              mainTypesSearches, builtDatesSearches)));
+      getActivity().getSupportFragmentManager().beginTransaction()
+          .replace(R.id.container, CarSearchFragment.newInstance(), CAR_SEARCH_FRAGMENT)
+          .addToBackStack(CAR_SEARCH_FRAGMENT)
+          .commit();
+    } else {
+      showError("You have to select at least one built date.");
+    }
+
   }
 
 

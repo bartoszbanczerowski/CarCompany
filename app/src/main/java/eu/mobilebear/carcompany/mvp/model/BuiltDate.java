@@ -5,8 +5,18 @@ package eu.mobilebear.carcompany.mvp.model;
  */
 public class BuiltDate extends Item {
 
+  private boolean isCheckedForSearch;
+
   public BuiltDate(String id, String name) {
     super(id, name);
+    this.isCheckedForSearch = false;
   }
 
+  public boolean isCheckedForSearch() {
+    return isCheckedForSearch;
+  }
+
+  public void setCheckedForSearch(boolean checkedForSearch) {
+    isCheckedForSearch = checkedForSearch;
+  }
 }

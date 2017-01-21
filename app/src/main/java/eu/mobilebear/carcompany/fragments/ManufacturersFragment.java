@@ -3,6 +3,7 @@ package eu.mobilebear.carcompany.fragments;
 import static eu.mobilebear.carcompany.utils.FragmentUtils.CAR_SEARCH_FRAGMENT;
 
 import android.app.ProgressDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -22,12 +23,16 @@ import butterknife.Unbinder;
 import eu.mobilebear.carcompany.MainActivity;
 import eu.mobilebear.carcompany.R;
 import eu.mobilebear.carcompany.adapters.ManufacturerAdapter;
+import eu.mobilebear.carcompany.injection.annotations.CarPreferences;
 import eu.mobilebear.carcompany.injection.annotations.GetCars;
 import eu.mobilebear.carcompany.injection.components.CarComponent;
 import eu.mobilebear.carcompany.mvp.model.Manufacturer;
+import eu.mobilebear.carcompany.mvp.model.Search;
+import eu.mobilebear.carcompany.mvp.model.SearchCriteria;
 import eu.mobilebear.carcompany.mvp.presenters.ManufacturerPresenter;
 import eu.mobilebear.carcompany.mvp.view.ManufacturerView;
 import io.realm.Realm;
+import io.realm.RealmList;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
@@ -39,6 +44,10 @@ public class ManufacturersFragment extends Fragment implements ManufacturerView 
 
   @Inject
   ManufacturerPresenter manufacturerPresenter;
+
+  @Inject
+  @CarPreferences
+  SharedPreferences carSharedPreferences;
 
   @Inject
   @GetCars
@@ -86,7 +95,8 @@ public class ManufacturersFragment extends Fragment implements ManufacturerView 
     manufacturers = new ArrayList<>();
     LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
     manufacturersRecyclerView.setLayoutManager(linearLayoutManager);
-    manufacturerAdapter = new ManufacturerAdapter(getActivity(), manufacturers);
+    manufacturerAdapter = new ManufacturerAdapter(getActivity(), manufacturers,
+        carSharedPreferences);
     manufacturersRecyclerView.setAdapter(manufacturerAdapter);
     manufacturersRecyclerView.setNestedScrollingEnabled(false);
     filterEditText.addTextChangedListener(new TextWatcher() {
@@ -160,20 +170,24 @@ public class ManufacturersFragment extends Fragment implements ManufacturerView 
 
   @OnClick(R.id.searchButton)
   void searchCars() {
-    List<Manufacturer> selectedManufacturers = new ArrayList<>();
+    RealmList<Search> manufacturerSearches = new RealmList<>();
     for (Manufacturer manufacturer : manufacturers) {
       if (manufacturer.isCheckedForSearch()) {
-        selectedManufacturers.add(manufacturer);
+        manufacturerSearches.add(new Search(manufacturer.getId()));
       }
     }
 
-    //TODO have to implement logic for saving searchCriteria
-//    realm.executeTransaction(
-//        realm1 -> realm1.copyToRealmOrUpdate(new SearchCriteria(selectedManufacturers)));
-    getActivity().getSupportFragmentManager().beginTransaction()
-        .replace(R.id.container, CarSearchFragment.newInstance(), CAR_SEARCH_FRAGMENT)
-        .addToBackStack(CAR_SEARCH_FRAGMENT)
-        .commit();
+    if (!manufacturerSearches.isEmpty()) {
+      realm.executeTransaction(
+          realm1 -> realm1.copyToRealmOrUpdate(new SearchCriteria(manufacturerSearches)));
+      getActivity().getSupportFragmentManager().beginTransaction()
+          .replace(R.id.container, CarSearchFragment.newInstance(), CAR_SEARCH_FRAGMENT)
+          .addToBackStack(CAR_SEARCH_FRAGMENT)
+          .commit();
+    } else {
+      showError("You have to select at least one manufacturer.");
+    }
+
   }
 
   private void injectDependencies() {
