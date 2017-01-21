@@ -24,13 +24,13 @@ public class ActivityModule {
   @Provides
   @PerActivity
   @ActivityContext
-  public Context context() {
+  Context context() {
     return activity;
   }
 
   @Provides
   @PerActivity
-  public FragmentManager provideSupportFragmentManager() {
+  FragmentManager provideSupportFragmentManager() {
     return ((FragmentActivity) activity).getSupportFragmentManager();
   }
 }

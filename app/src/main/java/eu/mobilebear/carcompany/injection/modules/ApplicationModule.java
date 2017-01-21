@@ -39,7 +39,7 @@ public class ApplicationModule {
 
   @Provides
   @CarPreferences
-  public SharedPreferences getCarPreferences(@ApplicationContext Context context) {
+  SharedPreferences getCarPreferences(@ApplicationContext Context context) {
     return context.getSharedPreferences(USER_PREFERENCES, Context.MODE_PRIVATE);
   }
 }

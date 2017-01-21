@@ -16,19 +16,19 @@ public class CarModule {
 
   @PerActivity
   @Provides
-  public ManufacturerPresenter provideManufacturerPresenter(RestClient restClient) {
+  ManufacturerPresenter provideManufacturerPresenter(RestClient restClient) {
     return new ManufacturerPresenter(restClient);
   }
 
   @PerActivity
   @Provides
-  public MainTypePresenter providMainTypePresenter(RestClient restClient) {
+  MainTypePresenter providMainTypePresenter(RestClient restClient) {
     return new MainTypePresenter(restClient);
   }
 
   @PerActivity
   @Provides
-  public BuiltDatePresenter provideBuiltDatePresenter(RestClient restClient) {
+  BuiltDatePresenter provideBuiltDatePresenter(RestClient restClient) {
     return new BuiltDatePresenter(restClient);
   }
 

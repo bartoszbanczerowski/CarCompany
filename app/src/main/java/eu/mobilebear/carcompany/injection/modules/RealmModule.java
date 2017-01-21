@@ -23,7 +23,7 @@ public class RealmModule {
   @Provides
   @Singleton
   @GetCars
-  public RealmConfiguration provideCarsRealmConfiguration() {
+  RealmConfiguration provideCarsRealmConfiguration() {
     return new RealmConfiguration.Builder()
         .name(CARS_REALM)
         .schemaVersion(1)
@@ -34,7 +34,7 @@ public class RealmModule {
   @Provides
   @GetCars
   @Singleton
-  public Realm provideCarsRealm(@NonNull @GetCars RealmConfiguration realmConfiguration) {
+  Realm provideCarsRealm(@NonNull @GetCars RealmConfiguration realmConfiguration) {
     return Realm.getInstance(realmConfiguration);
   }
 
